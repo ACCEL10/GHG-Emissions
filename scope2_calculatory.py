@@ -4,8 +4,17 @@ import pandas as pd
 # Title and description
 st.title("Scope 2 GHG Emissions Calculator")
 st.markdown("""
-This tool calculates Scope 2 GHG emissions based on energy consumption and emission factors.
-You can either input a custom emission factor or use the default value for 2022 as (0.774)
+            This calculator helps you estimate your organization’s Scope 2 greenhouse gas (GHG) emissions, which result from the electricity, heating, cooling, or steam you consume. These emissions are indirect and occur at the source of energy production, such as power plants.
+
+            To calculate your carbon output, you can either input a custom emission factor or use the default value from the Grid Emission Factor for 2022 as 0.774 from Suruhanjaya Tenagara
+""")
+st.subheader("How It Works:")
+st.markdown(""" 
+                1.Enter Your Energy Consumption: Provide the total energy used (in kilowatt-hours, kWh).
+
+                2.Choose an Emission Factor: Use the default value (0.772 kg CO₂e/kWh for 2022) or input a custom emission factor specific to your energy source or region.
+
+                3.View Your Total Emissions: The calculator will estimate the total GHG emissions (in kilograms of CO₂ equivalent, kg CO₂e) associated with your energy use.
 """)
 
 # Sidebar for user input
@@ -30,11 +39,11 @@ for source in energy_sources:
     # Option to select or input emission factor
     emission_factor_option = st.sidebar.radio(
         f"Choose Emission Factor for {source}:",
-        options=["Use default (2022: 0.772)", "Input custom"],
+        options=["0.774", "Input custom"],
         key=source
     )
-    if emission_factor_option == "Use default (2022: 0.772)":
-        emission_factor = 0.772  # Default value for 2022
+    if emission_factor_option == "0.774":
+        emission_factor = 0.774  # Default value for 2022
     else:
         emission_factor = st.sidebar.number_input(
             f"Enter custom Emission Factor for {source} (kg CO₂-eq/kWh):",
@@ -64,7 +73,7 @@ if data:
     df["Emissions (kg CO₂-eq)"] = df["Consumption (kWh)"] * df["Emission Factor (kg CO₂-eq/kWh)"]
 
     # Display results
-    st.subheader("Results")
+    
     st.table(df)
     total_emissions = calculate_total_emissions(data)
     st.write(f"**Total Emissions (kg CO₂-eq): {total_emissions:.2f}**")
