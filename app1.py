@@ -1,42 +1,4 @@
-# #scope 1
-# import mysql.connector
-# import streamlit as st
-
-# # Connect to MySQL
-# conn = mysql.connector.connect(
-#     host="localhost",
-#     user="your_username",
-#     password="your_password",
-#     database="your_database"
-# )
-# cursor = conn.cursor()
-
-# # Streamlit inputs
-# st.title("Scope 1 GHG Emissions Calculator")
-# fuel_type = st.selectbox("Select Fuel Type", ["Diesel", "Gasoline", "Natural Gas", "LPG", "Coal"])
-# fuel_consumed = st.number_input("Fuel Consumed", min_value=0.0, step=0.1)
-# emission_factor = st.number_input("Emission Factor (kg CO₂e per unit)", min_value=0.0, step=0.01)
-
-# if st.button("Add Entry"):
-#     cursor.execute(
-#         "INSERT INTO scope1_emissions (fuel_type, fuel_consumed, emission_factor) VALUES (%s, %s, %s)",
-#         (fuel_type, fuel_consumed, emission_factor)
-#     )
-#     conn.commit()
-#     st.success("Entry added to the database!")
-
-# # Fetch and display the data
-# if st.button("Show Data"):
-#     cursor.execute("SELECT * FROM scope1_emissions")
-#     rows = cursor.fetchall()
-#     st.write("### Emissions Data")
-#     for row in rows:
-#         st.write(row)
-
-# # Close the connection
-# conn.close()
-
-
+#scope 1
 
 import streamlit as st
 import pandas as pd
