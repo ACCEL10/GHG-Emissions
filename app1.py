@@ -7,7 +7,8 @@ st.write("""
 Scope 1 GHG emissions are direct emissions from owned or controlled sources.  
 This calculator allows you to input fuel consumption and emission data for the following subcategories:
 - Fugitive Emissions  
-- Stationary Combustion  
+- Stationary Combustion (given in litres)
+        - The values for 'Natural gas' and 'Natural gas' are in units of cubic metres
 - Mobile Combustion  
 - Process Emissions  
 You can use default emission factors or provide your own.
@@ -32,16 +33,35 @@ default_emission_factors = {
 subcategory_fuel_dict = {
     "Fugitive Emissions": ["Refrigerants (kg)"],
     "Stationary Combustion": {
-        "Naphtha": 34.2, "Lubricants": 30.5, "Gas oil": 42.8, "Diesel (average biofuel blend)": 43.1,
-        "Burning oil": 41.0, "Butane": 58.1, "CNG": 55.5, "LNG": 53.3, "LPG": 59.0, "Natural gas": 56.1,
-        "Natural gas (100% mineral blend)": 56.1, "Other petroleum gas": 57.8, "Propane": 60.6,
-        "Aviation spirit": 43.5, "Aviation turbine fuel": 42.8, "Diesel (100% mineral diesel)": 43.2,
-        "Petrol (average biofuel blend)": 44.4, "Petrol (100% mineral petrol)": 44.6,
-        "Processed fuel oils - residual oil": 40.0, "Processed fuel oils - distillate oil": 42.5,
-        "Refinery miscellaneous": 45.1, "Waste oils": 40.8, "Marine gas oil": 43.6,
-        "Marine fuel oil": 41.7, "Coal (industrial)": 25.8, "Coal (electricity generation)": 27.5,
-        "Coal (domestic)": 28.0, "Coking coal": 26.1, "Petroleum coke": 30.3,
-        "Coal (electricity generation - home produced coal only)": 26.7
+    "Aviation spirit": 2.33116,
+    "Aviation turbine fuel": 2.54269,
+    "Burning oil": 2.54015,
+    "Butane": 1.74532,
+    "CNG": 0.44942,
+    "Coal (domestic)": 0.36549,
+    "Coal (electricity generation)": 0.33368,
+    "Coal (electricity generation - home produced coal only)": 0.33368,
+    "Coal (industrial)": 0.34002,
+    "Coking coal": 0.37675,
+    "Diesel (100% mineral diesel)":2.66155,
+    "Diesel (average biofuel blend)": 2.51279,
+    "Gas oil": 2.75541,
+    "LNG": 1.17216,
+    "LPG": 1.55713,
+    "Lubricants": 2.74934,
+    "Marine fuel oil":3.10202,
+    "Marine gas oil": 2.77139,
+    "Naphtha":2.11894,
+    "Natural gas": 2.04542,
+    "Natural gas (100% mineral blend)": 2.06318,
+    "Other petroleum gas": 0.94441,
+    "Petroleum coke":0.35886 ,
+    "Petrol (100% mineral petrol)": 2.35372,
+    "Petrol (average biofuel blend)": 2.08440,
+    "Processed fuel oils - distillate oil": 2.75541,
+    "Processed fuel oils - residual oil": 3.17493,
+    "Propane":1.54357,
+    "Waste oils": 2.74923
     },
     "Mobile Combustion": ["Diesel (liters)", "Gasoline (liters)"],
     "Process Emissions": []  # Add specific fuels if applicable
@@ -113,7 +133,7 @@ if st.session_state.entries:
     if st.button("Clear All Entries"):
         st.session_state.entries = []  # Reset the entries list
         st.success("All entries have been cleared!")
-        
+
     # Total emissions by subcategory
     st.write("### Total Emissions by Subcategory")
     total_emissions = fuel_data.groupby("Subcategory")["Emissions (kg CO₂e)"].sum()
