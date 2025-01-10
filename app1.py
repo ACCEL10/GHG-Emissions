@@ -1,3 +1,5 @@
+#scope1
+
 import streamlit as st
 import pandas as pd
 
@@ -12,6 +14,8 @@ This calculator allows you to input fuel consumption and emission data for the f
 - Mobile Combustion  
 - Process Emissions  
 You can use default emission factors or provide your own.
+         
+Emission factors are from Defra 2024: https://assets.publishing.service.gov.uk/media/6722566a3758e4604742aa1e/ghg-conversion-factors-2024-condensed_set__for_most_users__v1_1.xlsx
 """)
 
 # Emission Factors (kg CO₂e per unit of fuel)
@@ -32,37 +36,7 @@ default_emission_factors = {
 # Dictionary of fuel types for each subcategory
 subcategory_fuel_dict = {
     "Fugitive Emissions": ["Refrigerants (kg)"],
-    "Stationary Combustion": {
-    "Aviation spirit": 2.33116,
-    "Aviation turbine fuel": 2.54269,
-    "Burning oil": 2.54015,
-    "Butane": 1.74532,
-    "CNG": 0.44942,
-    "Coal (domestic)": 0.36549,
-    "Coal (electricity generation)": 0.33368,
-    "Coal (electricity generation - home produced coal only)": 0.33368,
-    "Coal (industrial)": 0.34002,
-    "Coking coal": 0.37675,
-    "Diesel (100% mineral diesel)":2.66155,
-    "Diesel (average biofuel blend)": 2.51279,
-    "Gas oil": 2.75541,
-    "LNG": 1.17216,
-    "LPG": 1.55713,
-    "Lubricants": 2.74934,
-    "Marine fuel oil":3.10202,
-    "Marine gas oil": 2.77139,
-    "Naphtha":2.11894,
-    "Natural gas": 2.04542,
-    "Natural gas (100% mineral blend)": 2.06318,
-    "Other petroleum gas": 0.94441,
-    "Petroleum coke":0.35886 ,
-    "Petrol (100% mineral petrol)": 2.35372,
-    "Petrol (average biofuel blend)": 2.08440,
-    "Processed fuel oils - distillate oil": 2.75541,
-    "Processed fuel oils - residual oil": 3.17493,
-    "Propane":1.54357,
-    "Waste oils": 2.74923
-    },
+    "Stationary Combustion": [],
     "Mobile Combustion": ["Diesel (liters)", "Gasoline (liters)"],
     "Process Emissions": []  # Add specific fuels if applicable
 }
@@ -82,16 +56,58 @@ st.write("### Add Fuel Consumption Data")
 with st.expander("Add a New Entry"):
     subcategory = st.selectbox("Subcategory", list(subcategory_fuel_dict.keys()))
 
-    # Dynamically update the fuel type dropdown based on selected subcategory
     if subcategory == "Stationary Combustion":
-        available_fuels = list(subcategory_fuel_dict[subcategory].keys())
+        # Add a dropdown for fuel medium
+        fuel_medium = st.selectbox("Fuel Medium", options=["Solid fuels", "Liquid fuels", "Gaseous fuels"])
+
+        # Filter fuel types based on the selected fuel medium
+        if fuel_medium == "Solid fuels":
+            available_fuels = {
+                "Coal (domestic)": 0.36549,
+                "Coal (electricity generation)": 0.33368,
+                "Coal (electricity generation - home produced coal only)": 0.33368,
+                "Coal (industrial)": 0.34002,
+                "Coking coal": 0.37675,
+                "Petroleum coke":0.35886
+            }
+        elif fuel_medium == "Liquid fuels":
+            available_fuels = {
+            "Aviation spirit": 2.33116,    
+            "Aviation turbine fuel": 2.54269,
+            "Burning oil": 2.54015,
+            "Diesel (100% mineral diesel)":2.66155,
+            "Diesel (average biofuel blend)": 2.51279,
+            "Gas oil": 2.75541,
+            "Fuel oil": 3.17493,
+            "Lubricants": 2.74934,
+            "Naphtha": 2.11894,    
+            "Petrol (100% mineral petrol)": 2.35372,
+            "Petrol (average biofuel blend)": 2.08440,
+            "Processed fuel oils - distillate oil": 2.75541,
+            "Processed fuel oils - residual oil": 3.17493,
+            "Waste oils": 2.74923,
+            "Marine fuel oil":3.10202,
+            "Marine gas oil": 2.77139}
+        elif fuel_medium == "Gaseous":
+            available_fuels = {
+            "Butane": 1.74532,
+            "CNG": 0.44942,
+            "LNG": 1.17216,
+            "LPG": 1.55713,
+            "Natural gas": 2.04542,
+            "Natural gas (100% mineral blend)": 2.06318,
+            "Other petroleum gas": 0.94441,
+            "Propane":1.54357
+            }
+        else:
+            available_fuels = []  # Default empty list if no medium selected
     else:
-        available_fuels = subcategory_fuel_dict[subcategory]
+        available_fuels = subcategory_fuel_dict.get(subcategory, [])
 
     if available_fuels:
         fuel_type = st.selectbox("Fuel Type", options=available_fuels)
         if subcategory == "Stationary Combustion":
-            emission_factor = subcategory_fuel_dict[subcategory][fuel_type]
+            emission_factor = available_fuels.get(fuel_type, 0.0)
         else:
             emission_factor = default_emission_factors.get(fuel_type, 0.0)
     else:
@@ -109,6 +125,7 @@ with st.expander("Add a New Entry"):
         if fuel_type:
             st.session_state.entries.append({
                 "Subcategory": subcategory,
+                "Fuel Medium": fuel_medium,  # Store the selected fuel medium
                 "Fuel Type": fuel_type,
                 "Fuel Consumed": fuel_consumed,
                 "Emission Factor": emission_factor
