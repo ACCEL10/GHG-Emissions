@@ -11,7 +11,7 @@ This calculator allows you to input fuel consumption and emission data for the f
 - Fugitive Emissions  
 - Stationary Combustion (given in litres)
         - The values for 'Natural gas' and 'Natural gas' are in units of cubic metres
-- Mobile Combustion  
+- Mobile Combustion 
 - Process Emissions  
 You can use default emission factors or provide your own.
          
@@ -33,9 +33,29 @@ default_emission_factors = {
     "Refrigerants (kg)": 1430.0  # Example factor for R134a (Fugitive Emissions)
 }
 
+fugitive_fuels = {
+            "Carbon dioxide": 1.00000,
+        "Methane": 28.00000,
+        "Nitrous oxide": 265.00000,
+        "HFC-23":12400.00000,
+        "HFC-32": 677.00000,
+        "HFC-41":116.00000,
+        "HFC-125":3170.00000,
+        "HFC-134": 1120.00000,
+        "HFC-134a": 1300.00000,
+        "HFC-143":328.00000,
+        "HFC-143a":4800.00000,
+        "HFC-152a":138.00000,
+        "HFC-227ea": 3350.00000,
+        "HFC-236fa":8060.00000,
+        "HFC-245fa":858.00000,
+        "HFC-43-I0mee": 1650.00000
+        }
+
+
 # Dictionary of fuel types for each subcategory
 subcategory_fuel_dict = {
-    "Fugitive Emissions": ["Refrigerants (kg)"],
+    "Fugitive Emissions": [],
     "Stationary Combustion": [],
     "Mobile Combustion": ["Diesel (liters)", "Gasoline (liters)"],
     "Process Emissions": []  # Add specific fuels if applicable
@@ -55,12 +75,22 @@ st.write("### Add Fuel Consumption Data")
 
 with st.expander("Add a New Entry"):
     subcategory = st.selectbox("Subcategory", list(subcategory_fuel_dict.keys()))
-
-    if subcategory == "Stationary Combustion":
+    
+    # Handle "Fugitive Emissions" subcategory
+    if subcategory == "Fugitive Emissions":
+        available_fuels = fugitive_fuels  # Use the fugitive_fuels dictionary
+        fuel_type = st.selectbox("Fuel Type", options=list(available_fuels.keys()))  # Dropdown of all keys
+        emission_factor = available_fuels.get(fuel_type, None)
+        
+        # if emission_factor is None:
+        #     st.error(f"Fuel type '{fuel_type}' not found in emission factors for Fugitive Emissions.")
+        # else:
+        #     st.write(f"Default Emission Factor for '{fuel_type}': {emission_factor:.2f} kg CO₂e per unit")
+    
+    # Handle other subcategories
+    elif subcategory == "Stationary Combustion":
         # Add a dropdown for fuel medium
         fuel_medium = st.selectbox("Fuel Medium", options=["Solid fuels", "Liquid fuels", "Gaseous fuels"])
-
-        # Filter fuel types based on the selected fuel medium
         if fuel_medium == "Solid fuels":
             available_fuels = {
                 "Coal (domestic)": 0.36549,
@@ -72,7 +102,7 @@ with st.expander("Add a New Entry"):
             }
         elif fuel_medium == "Liquid fuels":
             available_fuels = {
-            "Aviation spirit": 2.33116,    
+                "Aviation spirit": 2.33116,    
             "Aviation turbine fuel": 2.54269,
             "Burning oil": 2.54015,
             "Diesel (100% mineral diesel)":2.66155,
@@ -87,8 +117,9 @@ with st.expander("Add a New Entry"):
             "Processed fuel oils - residual oil": 3.17493,
             "Waste oils": 2.74923,
             "Marine fuel oil":3.10202,
-            "Marine gas oil": 2.77139}
-        elif fuel_medium == "Gaseous":
+            "Marine gas oil": 2.77139
+            }
+        elif fuel_medium == "Gaseous fuels":
             available_fuels = {
             "Butane": 1.74532,
             "CNG": 0.44942,
@@ -100,41 +131,74 @@ with st.expander("Add a New Entry"):
             "Propane":1.54357
             }
         else:
-            available_fuels = []  # Default empty list if no medium selected
-    else:
-        available_fuels = subcategory_fuel_dict.get(subcategory, [])
-
-    if available_fuels:
-        fuel_type = st.selectbox("Fuel Type", options=available_fuels)
-        if subcategory == "Stationary Combustion":
-            emission_factor = available_fuels.get(fuel_type, 0.0)
+            available_fuels = {}
+        fuel_type = st.selectbox("Fuel Type", options=list(available_fuels.keys()))
+        emission_factor = available_fuels.get(fuel_type, 0.0)
+    
+    elif subcategory == "Mobile Combustion":
+        # Add a dropdown for vehicle type
+        vehicle_type = st.selectbox("Vehicle Type", options=["Car", "Motorbike"])
+        
+        # Initialize vehicle_medium based on vehicle type
+        if vehicle_type == "Car":
+            vehicle_medium = {
+                "Mini": 0.10764,
+                "Supermini": 0.13178,
+                "Lower medium": 0.14288,
+                "Upper medium": 0.16048,
+                "Executive": 0.17001,
+                "Luxury": 0.20695,
+                "Sports": 0.17016,
+                "Dual purpose 4X4": 0.19757,
+                "MPV": 0.17751
+            }
+        elif vehicle_type == "Motorbike":
+            vehicle_medium = {
+                "Small": 0.08319,
+                "Medium": 0.10107,
+                "Large": 0.13252,
+                "Average": 0.11367
+            }
         else:
-            emission_factor = default_emission_factors.get(fuel_type, 0.0)
-    else:
-        st.warning("No fuel types available for the selected subcategory.")
-        fuel_type = None
-        emission_factor = 0.0
+            vehicle_medium = {}
+        
+        # Display the fuel type dropdown
+        fuel_type = st.selectbox("Fuel Type", options=list(vehicle_medium.keys()))
+        
+        # Retrieve emission factor or default to 0.0 if not found
+        emission_factor = vehicle_medium.get(fuel_type, 0.0)
 
-    fuel_consumed = st.number_input("Fuel Consumed (in units)", min_value=0.0, step=0.01)
-    use_default_factor = st.checkbox("Use Default Emission Factor", value=True)
-
-    if not use_default_factor:
-        emission_factor = st.number_input("Custom Emission Factor (kg CO₂e per unit)", min_value=0.0, step=0.01)
-
-    if st.button("Add Entry"):
-        if fuel_type:
-            st.session_state.entries.append({
-                "Subcategory": subcategory,
-                "Fuel Medium": fuel_medium,  # Store the selected fuel medium
-                "Fuel Type": fuel_type,
-                "Fuel Consumed": fuel_consumed,
-                "Emission Factor": emission_factor
-            })
-            st.success("Entry added successfully!")
-        else:
-            st.error("Please select a valid fuel type.")
-
-# Display current entries
+    elif subcategory == "Process Emissions":
+        st.write("### Add a Custom Process Type and Emission Factor")
+        
+        # Input field for process type
+        process_type = st.text_input("Enter Process Type", placeholder="e.g., Cement Production, Steel Manufacturing")
+        
+        # Input field for custom emission factor
+        emission_factor = st.number_input(
+            "Custom Emission Factor (kg CO₂e per unit)", 
+            min_value=0.0, 
+            step=0.01,
+            value=0.0
+        )
+        
+        # Input for fuel consumed
+        fuel_consumed = st.number_input("Fuel Consumed (in units)", min_value=0.0, step=0.01)
+        
+        # Button to add the entry
+        if st.button("Add Process Emission Entry"):
+            if process_type and emission_factor > 0 and fuel_consumed > 0:
+                st.session_state.entries.append({
+                    "Subcategory": subcategory,
+                    "Fuel Type": process_type,  # Process type acts as the 'fuel type'
+                    "Fuel Consumed": fuel_consumed,
+                    "Emission Factor": emission_factor
+                })
+                st.success(f"Process emission entry for '{process_type}' added successfully!")
+            else:
+                st.error("Please provide a valid process type, fuel consumed, and emission factor.")
+                    
+# Display the current entries and calculate total emissions
 if st.session_state.entries:
     st.write("### Current Fuel Data")
     fuel_data = pd.DataFrame(st.session_state.entries)
@@ -143,18 +207,14 @@ if st.session_state.entries:
     # Set the index to start from 1
     fuel_data.index = fuel_data.index + 1
 
-    # Display the updated DataFrame
+    # Display the data with calculated emissions
     st.dataframe(fuel_data)
+
+    # Total emissions display
+    total_emissions = fuel_data["Emissions (kg CO₂e)"].sum()
+    st.success(f"Total Scope 1 Emissions: {total_emissions:.2f} kg CO₂e")
 
     # Button to clear the table
     if st.button("Clear All Entries"):
         st.session_state.entries = []  # Reset the entries list
         st.success("All entries have been cleared!")
-
-    # Total emissions by subcategory
-    st.write("### Total Emissions by Subcategory")
-    total_emissions = fuel_data.groupby("Subcategory")["Emissions (kg CO₂e)"].sum()
-
-    # Total emissions
-    total_emissions_all = fuel_data["Emissions (kg CO₂e)"].sum()
-    st.success(f"### Total Scope 1 Emissions: {total_emissions_all:.2f} kg CO₂e")
