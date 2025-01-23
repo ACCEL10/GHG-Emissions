@@ -152,6 +152,9 @@ with st.expander("Add a New Entry"):
                 "Dual purpose 4X4": 0.19757,
                 "MPV": 0.17751
             }
+            fuel_type = st.selectbox("Fuel Type", options=list(vehicle_medium.keys()))
+            emission_factor = vehicle_medium.get(fuel_type, 0.0)
+
         elif vehicle_type == "Motorbike":
             vehicle_medium = {
                 "Small": 0.08319,
@@ -159,8 +162,13 @@ with st.expander("Add a New Entry"):
                 "Large": 0.13252,
                 "Average": 0.11367
             }
+            fuel_type = st.selectbox("Fuel Type", options=list(vehicle_medium.keys()))
+            emission_factor = vehicle_medium.get(fuel_type, 0.0)
+        
         else:
             vehicle_medium = {}
+            fuel_type = st.selectbox("Fuel Type", options=list(vehicle_medium.keys()))
+            emission_factor = vehicle_medium.get(fuel_type, 0.0)
 
     fuel_consumed = st.number_input("Fuel Consumed (in units)", min_value=0.0, step=0.01)
     use_default_factor = st.checkbox("Use Default Emission Factor", value=True)
