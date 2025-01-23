@@ -94,6 +94,8 @@ with st.expander("Add a New Entry"):
                 "Coking coal": 0.37675,
                 "Petroleum coke":0.35886
             }
+            fuel_type = st.selectbox("Fuel Type", options=list(available_fuels.keys()))
+            emission_factor = available_fuels.get(fuel_type, 0.0)
         elif fuel_medium == "Liquid fuels":
             available_fuels = {
             "Aviation spirit": 2.33116,    
@@ -113,6 +115,8 @@ with st.expander("Add a New Entry"):
             "Marine fuel oil":3.10202,
             "Marine gas oil": 2.77139
             }
+            fuel_type = st.selectbox("Fuel Type", options=list(available_fuels.keys()))
+            emission_factor = available_fuels.get(fuel_type, 0.0)
         elif fuel_medium == "Gaseous fuels":
             available_fuels = {
             "Butane": 1.74532,
@@ -124,6 +128,8 @@ with st.expander("Add a New Entry"):
             "Other petroleum gas": 0.94441,
             "Propane":1.54357
             }
+            fuel_type = st.selectbox("Fuel Type", options=list(available_fuels.keys()))
+            emission_factor = available_fuels.get(fuel_type, 0.0)
         else:
             available_fuels = {}
             fuel_type = st.selectbox("Fuel Type", options=list(available_fuels.keys()))
