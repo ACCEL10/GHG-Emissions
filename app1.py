@@ -1,5 +1,6 @@
 #scope1
 
+import altair as alt
 import streamlit as st
 import pandas as pd
 
@@ -73,6 +74,9 @@ def calculate_emissions(df):
 st.write("### Add Fuel Consumption Data")
 
 with st.expander("Add a New Entry"):
+    # Input year using number_input
+    year = st.number_input("Enter a year:", min_value=1900, max_value=2100, step=1, format="%d")
+
     subcategory = st.selectbox("Subcategory", list(subcategory_fuel_dict.keys()))
 
     # Handle "Fugitive Emissions" subcategory
@@ -168,8 +172,13 @@ with st.expander("Add a New Entry"):
         else:
             vehicle_medium = {}
             fuel_type = st.selectbox("Fuel Type", options=list(vehicle_medium.keys()))
-            emission_factor = vehicle_medium.get(fuel_type, 0.0)
+            emission_factor = vehicle_medium.get(fuel_type, 0.0)      
+    elif subcategory == "Process Emissions":
+        # Allow the user to input a custom fuel name and emission factor
+        fuel_type = st.text_input("Enter the Fuel/Process Name")
+        emission_factor = st.number_input("Enter the Emission Factor (kg CO₂e per unit)", min_value=0.0, step=0.01)
 
+        
     fuel_consumed = st.number_input("Fuel Consumed (in units)", min_value=0.0, step=0.01)
     use_default_factor = st.checkbox("Use Default Emission Factor", value=True)
 
@@ -179,6 +188,7 @@ with st.expander("Add a New Entry"):
     if st.button("Add Entry"):
         if fuel_type:
             st.session_state.entries.append({
+                "Year": year,
                 "Subcategory": subcategory,
                 "Fuel Type": fuel_type,
                 "Fuel Consumed": fuel_consumed,
@@ -194,6 +204,14 @@ if st.session_state.entries:
     fuel_data = pd.DataFrame(st.session_state.entries)
     fuel_data = calculate_emissions(fuel_data)
 
+    #formating the year output on the dataframe to be output as a year and not a number with commas
+    fuel_data["Year"] = fuel_data["Year"].astype(str)
+
+
+    #ADDED NEW
+    csv = fuel_data.to_csv(index=False).encode('utf-8')
+    st.download_button("Download Emissions Data as CSV", data=csv, file_name="scope1_emissions.csv", mime="text/csv")
+
     # Set the index to start from 1
     fuel_data.index = fuel_data.index + 1
 
@@ -208,8 +226,33 @@ if st.session_state.entries:
     total_emissions_all = fuel_data["Emissions (kg CO₂e)"].sum()
     st.success(f"### Total Scope 1 Emissions: {total_emissions_all:.2f} kg CO₂e")
 
+    #button to clear the table
+    if st.button("Clear Entries"):
+        st.session_state.entries = []
+        st.success("All entries cleared successfully!")
 
-    # Button to clear the table
-    if st.button("Clear All Entries"):
-        st.session_state.entries = []  # Reset the entries list
-        st.success("All entries have been cleared!")
+    
+    #ADDED NEW
+    # Group data by year and subcategory to get the total emissions per subcategory per year
+    yearly_emissions = fuel_data.groupby(["Year", "Subcategory"], as_index=False)["Emissions (kg CO₂e)"].sum()
+
+    # Create the Altair bar chart
+    chart = alt.Chart(yearly_emissions).mark_bar().encode(
+        x=alt.X("Year:O", title="Year"),  # Discrete axis for Year
+        y=alt.Y("sum(Emissions (kg CO₂e)):Q", title="Total Emissions (kg CO₂e)"),
+        color=alt.Color("Subcategory:N", title="Subcategory"),  # Different colors for each subcategory
+        tooltip=["Year", "Subcategory", "Emissions (kg CO₂e)"]  # Add tooltips for interactivity
+    ).properties(
+        title="Total Emissions by Year and Subcategory",
+        width=600,
+        height=400
+    )
+
+    # Display the chart in Streamlit
+    st.altair_chart(chart, use_container_width=True)
+
+
+
+
+
+
