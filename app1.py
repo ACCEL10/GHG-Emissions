@@ -7,12 +7,10 @@ import plotly.express as px  # For creating the pie chart
 # Database connection
 connection = mysql.connector.connect(
     host="192.168.6.4",
-    # host="localhost",
     port="3306",
     database="ghg_emissions",
     user="root",
     password="ghgemission1"
-    # password="1234"
 )
 
 print("connected")
